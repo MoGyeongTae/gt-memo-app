@@ -10,10 +10,12 @@ export const PREVIEW_LINES = 5;
 type Props = {
   memo: Memo;
   index: number;
+  /** 한 변의 길이. 모든 포스트잇이 같은 크기로 보이도록 부모가 계산해서 넘긴다. */
+  size: number;
   onPress: () => void;
 };
 
-export function StickyNote({ memo, index, onPress }: Props) {
+export function StickyNote({ memo, index, size, onPress }: Props) {
   const color = NOTE_COLORS[index % NOTE_COLORS.length];
   const date = new Date(memo.createdAt);
 
@@ -22,7 +24,7 @@ export function StickyNote({ memo, index, onPress }: Props) {
       onPress={onPress}
       style={({ pressed }) => [
         styles.note,
-        { backgroundColor: color, transform: [{ scale: pressed ? 0.97 : 1 }] },
+        { width: size, height: size, backgroundColor: color, transform: [{ scale: pressed ? 0.97 : 1 }] },
       ]}>
       <View style={styles.tape} />
       <Text style={styles.content} numberOfLines={PREVIEW_LINES} ellipsizeMode="tail">
@@ -37,8 +39,6 @@ export function StickyNote({ memo, index, onPress }: Props) {
 
 const styles = StyleSheet.create({
   note: {
-    flex: 1,
-    aspectRatio: 1,
     padding: 14,
     paddingTop: 20,
     boxShadow: '0 3px 6px rgba(0, 0, 0, 0.18)',

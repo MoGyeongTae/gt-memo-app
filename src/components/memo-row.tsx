@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, useWindowDimensions, View } from 'react-native';
 
 import { StickyNote } from '@/components/sticky-note';
 import { Spacing } from '@/constants/theme';
@@ -16,8 +16,11 @@ type Props = {
   rowIndex: number;
 };
 
-/** 포스트잇 한 줄. 마지막 줄이 덜 차면 빈 칸으로 너비를 맞춘다. */
+/** 포스트잇 한 줄. 줄에 몇 개가 있든 포스트잇 크기는 항상 화면 너비 기준으로 같다. */
 export function MemoRow({ row, rowIndex }: Props) {
+  const { width } = useWindowDimensions();
+  const size = (width - ROW_PADDING * 2 - NOTE_GAP * (MEMO_COLUMNS - 1)) / MEMO_COLUMNS;
+
   return (
     <View style={styles.row}>
       {row.map((memo, col) => (
@@ -25,24 +28,22 @@ export function MemoRow({ row, rowIndex }: Props) {
           key={memo.id}
           memo={memo}
           index={rowIndex * MEMO_COLUMNS + col}
+          size={size}
           onPress={() => openMemo(memo.id)}
         />
-      ))}
-      {Array.from({ length: MEMO_COLUMNS - row.length }, (_, i) => (
-        <View key={`spacer-${i}`} style={styles.spacer} />
       ))}
     </View>
   );
 }
 
+const ROW_PADDING = Spacing.four;
+const NOTE_GAP = Spacing.three;
+
 const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
-    paddingHorizontal: Spacing.four,
-    gap: Spacing.three,
+    paddingHorizontal: ROW_PADDING,
+    gap: NOTE_GAP,
     marginBottom: Spacing.four,
-  },
-  spacer: {
-    flex: 1,
   },
 });
