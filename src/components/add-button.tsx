@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet, Text } from 'react-native';
+import { Pressable, Text } from 'react-native';
 
 type Props = {
   onPress: () => void;
@@ -11,24 +11,13 @@ export function AddButton({ onPress, size = 60 }: Props) {
       accessibilityRole="button"
       accessibilityLabel="메모 추가"
       onPress={onPress}
-      style={({ pressed }) => [
-        styles.button,
-        { width: size, height: size, borderRadius: size / 2, opacity: pressed ? 0.8 : 1 },
-      ]}>
-      <Text style={[styles.plus, { fontSize: size * 0.55, lineHeight: size * 0.65 }]}>+</Text>
+      className="items-center justify-center rounded-full bg-accent shadow-lg active:opacity-80"
+      style={{ width: size, height: size }}>
+      <Text
+        className="font-semibold text-white"
+        style={{ fontSize: size * 0.55, lineHeight: size * 0.65 }}>
+        +
+      </Text>
     </Pressable>
   );
 }
-
-const styles = StyleSheet.create({
-  button: {
-    backgroundColor: '#F9A825',
-    alignItems: 'center',
-    justifyContent: 'center',
-    boxShadow: '0 4px 10px rgba(0, 0, 0, 0.25)',
-  },
-  plus: {
-    color: '#fff',
-    fontWeight: '600',
-  },
-});

@@ -1,6 +1,6 @@
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
-import { Alert, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, Pressable, Text, TextInput, View } from 'react-native';
 
 import { addMemo, deleteMemo, getMemo, updateMemo } from '@/lib/memo-store';
 
@@ -35,26 +35,26 @@ export default function MemoEditorScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <View className="flex-1 bg-note-paper">
       <Stack.Screen
         options={{
           title: isNew ? '새 메모' : '메모',
           headerRight: () => (
-            <View style={styles.headerActions}>
+            <View className="flex-row gap-4">
               {existing && (
                 <Pressable onPress={remove} hitSlop={8}>
-                  <Text style={[styles.headerButton, styles.delete]}>삭제</Text>
+                  <Text className="text-[17px] font-semibold text-red-700">삭제</Text>
                 </Pressable>
               )}
               <Pressable onPress={save} hitSlop={8}>
-                <Text style={styles.headerButton}>저장</Text>
+                <Text className="text-[17px] font-semibold text-accent-dark">저장</Text>
               </Pressable>
             </View>
           ),
         }}
       />
       <TextInput
-        style={styles.input}
+        className="flex-1 p-5 text-[17px] leading-[26px] text-neutral-800"
         value={content}
         onChangeText={setContent}
         placeholder="메모를 입력하세요"
@@ -66,29 +66,3 @@ export default function MemoEditorScreen() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#FFF9C4',
-  },
-  input: {
-    flex: 1,
-    padding: 20,
-    fontSize: 17,
-    lineHeight: 26,
-    color: '#333',
-  },
-  headerActions: {
-    flexDirection: 'row',
-    gap: 16,
-  },
-  headerButton: {
-    fontSize: 17,
-    fontWeight: '600',
-    color: '#F57F17',
-  },
-  delete: {
-    color: '#D32F2F',
-  },
-});
