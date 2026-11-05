@@ -35,6 +35,7 @@
   },
   "devDependencies": {
     "@types/react": "~19.3.0",
+    "concurrently": "^10.0.6",
     "eslint": "^9.0.0",
     "eslint-config-expo": "~58.0.4",
     "typescript": "~6.0.3"
@@ -45,7 +46,9 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "lint": "expo lint"
+    "lint": "expo lint",
+    "server": "npm --prefix server run dev",
+    "dev": "concurrently --names app,server --prefix-colors blue,magenta \"npm:start\" \"npm:server\""
   },
   "private": true
 }

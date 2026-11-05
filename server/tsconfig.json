@@ -1,0 +1,18 @@
+{
+  // Node 가 .ts 파일을 바로 실행하므로 tsc 는 타입 검사에만 쓴다 (빌드 결과물 없음).
+  "compilerOptions": {
+    "target": "ES2024",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "types": ["node"],
+    "strict": true,
+    "noEmit": true,
+    // import 경로에 .ts 확장자를 그대로 쓴다 (Node 가 실행할 때 필요).
+    "allowImportingTsExtensions": true,
+    "verbatimModuleSyntax": true,
+    // Node 가 타입만 지우고 실행할 수 있는 문법만 허용한다 (enum 등 금지).
+    "erasableSyntaxOnly": true,
+    "skipLibCheck": true
+  },
+  "include": ["src"]
+}
