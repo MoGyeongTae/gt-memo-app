@@ -3,12 +3,12 @@ import { FlatList, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { MEMO_COLUMNS, MemoRow } from '@/components/memo-row';
-import { chunk, monthKey, monthTitle, useMemos } from '@/lib/memo-store';
+import { chunk, monthKey, monthTitle, useMemoStore } from '@/lib/memo-store';
 
 /** 한 달의 메모 전체를 보여주는 화면 */
 export default function MonthScreen() {
   const { key } = useLocalSearchParams<{ key: string }>();
-  const memos = useMemos();
+  const memos = useMemoStore((state) => state.memos);
   const insets = useSafeAreaInsets();
 
   const rows = chunk(

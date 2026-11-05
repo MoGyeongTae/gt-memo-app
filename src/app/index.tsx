@@ -4,13 +4,13 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AddButton } from '@/components/add-button';
 import { MEMO_COLUMNS, MemoRow, openMemo } from '@/components/memo-row';
-import { groupByMonth, useMemos } from '@/lib/memo-store';
+import { groupByMonth, useMemoStore } from '@/lib/memo-store';
 
 /** 메인 화면에서 년/월 분류마다 보여줄 최대 메모 수 */
 const PREVIEW_PER_MONTH = 6;
 
 export default function MemoListScreen() {
-  const memos = useMemos();
+  const memos = useMemoStore((state) => state.memos);
   const insets = useSafeAreaInsets();
   const sections = groupByMonth(memos, MEMO_COLUMNS, PREVIEW_PER_MONTH);
 

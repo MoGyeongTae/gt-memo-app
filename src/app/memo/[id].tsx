@@ -2,12 +2,17 @@ import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { Alert, Pressable, Text, TextInput, View } from 'react-native';
 
-import { addMemo, deleteMemo, getMemo, updateMemo } from '@/lib/memo-store';
+import { useMemoStore } from '@/lib/memo-store';
 
 export default function MemoEditorScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const isNew = id === 'new';
-  const existing = isNew ? undefined : getMemo(id);
+  const existing = useMemoStore((state) =>
+    isNew ? undefined : state.memos.find((memo) => memo.id === id),
+  );
+  const addMemo = useMemoStore((state) => state.addMemo);
+  const updateMemo = useMemoStore((state) => state.updateMemo);
+  const deleteMemo = useMemoStore((state) => state.deleteMemo);
   const [content, setContent] = useState(existing?.content ?? '');
 
   const save = () => {

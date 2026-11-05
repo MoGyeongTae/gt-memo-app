@@ -1,5 +1,6 @@
 import Storage from 'expo-sqlite/kv-store';
-import { useSyncExternalStore } from 'react';
+import { create } from 'zustand';
+import { createJSONStorage, persist, type StateStorage } from 'zustand/middleware';
 
 export type Memo = {
   id: string;
@@ -8,58 +9,67 @@ export type Memo = {
   updatedAt: number;
 };
 
-const STORAGE_KEY = 'memos';
+type MemoStore = {
+  memos: Memo[];
+  addMemo: (content: string) => void;
+  updateMemo: (id: string, content: string) => void;
+  deleteMemo: (id: string) => void;
+};
 
-function load(): Memo[] {
-  try {
-    const raw = Storage.getItemSync(STORAGE_KEY);
-    return raw ? (JSON.parse(raw) as Memo[]) : [];
-  } catch {
-    return [];
-  }
-}
+/** zustand 이전 버전이 메모 배열을 그대로 저장하던 키 */
+const LEGACY_KEY = 'memos';
 
-let memos: Memo[] = load();
-const listeners = new Set<() => void>();
+/**
+ * kv-store 의 동기 API 를 쓰는 저장소.
+ * 동기로 읽어야 앱이 켜지자마자 메모가 채워진 상태로 시작한다 (빈 화면 깜빡임 없음).
+ */
+const memoStorage: StateStorage = {
+  getItem: (name) => {
+    const value = Storage.getItemSync(name);
+    if (value !== null) return value;
 
-function commit(next: Memo[]) {
-  memos = next;
-  Storage.setItemSync(STORAGE_KEY, JSON.stringify(next));
-  listeners.forEach((listener) => listener());
-}
+    // 이전 형식(배열만 저장)으로 남아 있는 메모를 zustand 형식으로 옮겨 읽는다.
+    const legacy = Storage.getItemSync(LEGACY_KEY);
+    return legacy ? JSON.stringify({ state: { memos: JSON.parse(legacy) }, version: 0 }) : null;
+  },
+  setItem: (name, value) => {
+    Storage.setItemSync(name, value);
+  },
+  removeItem: (name) => {
+    Storage.removeItemSync(name);
+  },
+};
 
-function subscribe(listener: () => void) {
-  listeners.add(listener);
-  return () => listeners.delete(listener);
-}
-
-export function useMemos() {
-  return useSyncExternalStore(subscribe, () => memos);
-}
-
-export function getMemo(id: string) {
-  return memos.find((memo) => memo.id === id);
-}
-
-export function addMemo(content: string) {
-  const now = Date.now();
-  const memo: Memo = {
-    id: `${now}-${Math.random().toString(36).slice(2, 8)}`,
-    content,
-    createdAt: now,
-    updatedAt: now,
-  };
-  commit([memo, ...memos]);
-  return memo;
-}
-
-export function updateMemo(id: string, content: string) {
-  commit(memos.map((memo) => (memo.id === id ? { ...memo, content, updatedAt: Date.now() } : memo)));
-}
-
-export function deleteMemo(id: string) {
-  commit(memos.filter((memo) => memo.id !== id));
-}
+export const useMemoStore = create<MemoStore>()(
+  persist(
+    (set) => ({
+      memos: [],
+      addMemo: (content) => {
+        const now = Date.now();
+        const memo: Memo = {
+          id: `${now}-${Math.random().toString(36).slice(2, 8)}`,
+          content,
+          createdAt: now,
+          updatedAt: now,
+        };
+        set((state) => ({ memos: [memo, ...state.memos] }));
+      },
+      updateMemo: (id, content) =>
+        set((state) => ({
+          memos: state.memos.map((memo) =>
+            memo.id === id ? { ...memo, content, updatedAt: Date.now() } : memo,
+          ),
+        })),
+      deleteMemo: (id) => set((state) => ({ memos: state.memos.filter((memo) => memo.id !== id) })),
+    }),
+    {
+      name: 'memo-store',
+      storage: createJSONStorage(() => memoStorage),
+      // 함수(액션)는 저장하지 않고 메모 목록만 저장한다.
+      partialize: (state) => ({ memos: state.memos }),
+    },
+  ),
+);
 
 export type MemoSection = {
   /** 'YYYY-MM' */
