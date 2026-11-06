@@ -1,5 +1,0 @@
-node_modules/
-# 로컬 SQLite 데이터베이스 파일 (WAL 모드의 -wal, -shm 파일 포함)
-*.db
-*.db-shm
-*.db-wal
