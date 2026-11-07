@@ -24,7 +24,7 @@ export default function MonthScreen() {
         keyExtractor={(row) => row.map((memo) => memo.id).join('|')}
         contentInsetAdjustmentBehavior="automatic"
         contentContainerStyle={{ paddingTop: 24, paddingBottom: insets.bottom + 24 }}
-        renderItem={({ item, index }) => <MemoRow row={item} rowIndex={index} />}
+        renderItem={({ item }) => <MemoRow row={item} />}
       />
     </View>
   );

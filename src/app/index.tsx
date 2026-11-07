@@ -47,7 +47,7 @@ export default function MemoListScreen() {
             )}
           </View>
         )}
-        renderItem={({ item: row, index }) => <MemoRow row={row} rowIndex={index} />}
+        renderItem={({ item: row }) => <MemoRow row={row} />}
       />
       <View className="absolute right-6" style={{ bottom: insets.bottom + 24 }}>
         <AddButton onPress={() => openMemo('new')} />

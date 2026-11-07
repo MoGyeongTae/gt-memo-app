@@ -2,16 +2,20 @@ import Storage from 'expo-sqlite/kv-store';
 import { create } from 'zustand';
 import { createJSONStorage, persist, type StateStorage } from 'zustand/middleware';
 
+import { type NoteColor, randomNoteColor, toNoteColor } from '@/lib/note-colors';
+
 export type Memo = {
   id: string;
   content: string;
+  /** 포스트잇 색. 만들 때 정해지고, 목록과 상세 화면에서 같은 색으로 보인다. */
+  color: NoteColor;
   createdAt: number;
   updatedAt: number;
 };
 
 type MemoStore = {
   memos: Memo[];
-  addMemo: (content: string) => void;
+  addMemo: (content: string, color?: NoteColor) => void;
   updateMemo: (id: string, content: string) => void;
   deleteMemo: (id: string) => void;
 };
@@ -44,11 +48,12 @@ export const useMemoStore = create<MemoStore>()(
   persist(
     (set) => ({
       memos: [],
-      addMemo: (content) => {
+      addMemo: (content, color = randomNoteColor()) => {
         const now = Date.now();
         const memo: Memo = {
           id: `${now}-${Math.random().toString(36).slice(2, 8)}`,
           content,
+          color,
           createdAt: now,
           updatedAt: now,
         };
@@ -67,6 +72,19 @@ export const useMemoStore = create<MemoStore>()(
       storage: createJSONStorage(() => memoStorage),
       // 함수(액션)는 저장하지 않고 메모 목록만 저장한다.
       partialize: (state) => ({ memos: state.memos }),
+      // 저장 형식 버전. 형식이 바뀔 때마다 올리고, migrate 에서 예전 데이터를 새 형식으로 바꾼다.
+      // - 0: 색 없음
+      // - 1: 메모마다 color 저장
+      version: 1,
+      migrate: (persisted, version) => {
+        const state = persisted as { memos?: Partial<Memo>[] };
+        let memos = state.memos ?? [];
+        if (version < 1) {
+          // 색이 없던 예전 메모에 랜덤 색을 한 번 정해서 저장한다.
+          memos = memos.map((memo) => ({ ...memo, color: toNoteColor(memo.color) }));
+        }
+        return { memos: memos as Memo[] };
+      },
     },
   ),
 );

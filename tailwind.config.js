@@ -13,7 +13,6 @@ module.exports = {
           blue: '#90CAF9',
           pink: '#F48FB1',
           purple: '#CE93D8',
-          paper: '#FFF9C4',
         },
         accent: {
           DEFAULT: '#F9A825',

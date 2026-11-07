@@ -16,21 +16,19 @@ export function openMemo(id: string) {
 
 type Props = {
   row: Memo[];
-  rowIndex: number;
 };
 
 /** 포스트잇 한 줄. 줄에 몇 개가 있든 포스트잇 크기는 항상 화면 너비 기준으로 같다. */
-export function MemoRow({ row, rowIndex }: Props) {
+export function MemoRow({ row }: Props) {
   const { width } = useWindowDimensions();
   const size = (width - ROW_PADDING * 2 - NOTE_GAP * (MEMO_COLUMNS - 1)) / MEMO_COLUMNS;
 
   return (
     <View className="mb-6 flex-row gap-4 px-6">
-      {row.map((memo, col) => (
+      {row.map((memo) => (
         <StickyNote
           key={memo.id}
           memo={memo}
-          index={rowIndex * MEMO_COLUMNS + col}
           size={size}
           onPress={() => openMemo(memo.id)}
         />

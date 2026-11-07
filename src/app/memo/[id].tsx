@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Alert, Pressable, Text, TextInput, View } from 'react-native';
 
 import { useMemoStore } from '@/lib/memo-store';
+import { NOTE_BG_CLASS, randomNoteColor } from '@/lib/note-colors';
 
 export default function MemoEditorScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -14,12 +15,15 @@ export default function MemoEditorScreen() {
   const updateMemo = useMemoStore((state) => state.updateMemo);
   const deleteMemo = useMemoStore((state) => state.deleteMemo);
   const [content, setContent] = useState(existing?.content ?? '');
+  // 화면을 연 순간의 색으로 고정한다. 기존 메모는 저장된 색, 새 메모는 랜덤 색이고,
+  // 새 메모는 저장할 때 이 색을 그대로 넘겨서 목록에서도 같은 색으로 보이게 한다.
+  const [color] = useState(() => existing?.color ?? randomNoteColor());
 
   const save = () => {
     const trimmed = content.trim();
     if (trimmed) {
       if (existing) updateMemo(existing.id, trimmed);
-      else addMemo(trimmed);
+      else addMemo(trimmed, color);
     }
     router.back();
   };
@@ -40,7 +44,7 @@ export default function MemoEditorScreen() {
   };
 
   return (
-    <View className="flex-1 bg-note-paper">
+    <View className={`flex-1 ${NOTE_BG_CLASS[color]}`}>
       <Stack.Screen
         options={{
           title: isNew ? '새 메모' : '메모',
