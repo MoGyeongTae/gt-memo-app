@@ -14,6 +14,16 @@ export const NOTE_BG_CLASS: Record<NoteColor, string> = {
   purple: 'bg-note-purple',
 };
 
+// className 을 못 쓰는 곳(헤더 배경 등)에서 쓰는 실제 색 값. tailwind.config.js 의 note 색과 같아야 한다.
+export const NOTE_HEX: Record<NoteColor, string> = {
+  yellow: '#FFF59D',
+  orange: '#FFCC80',
+  green: '#A5D6A7',
+  blue: '#90CAF9',
+  pink: '#F48FB1',
+  purple: '#CE93D8',
+};
+
 export function randomNoteColor(): NoteColor {
   return NOTE_COLORS[Math.floor(Math.random() * NOTE_COLORS.length)];
 }
