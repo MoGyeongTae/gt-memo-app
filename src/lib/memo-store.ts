@@ -7,6 +7,8 @@ import { isRichHtml, plainTextToHtml } from '@/lib/rich-text';
 
 export type Memo = {
   id: string;
+  /** 제목. 선택 입력이라 없으면 빈 문자열이다. */
+  title: string;
   /** 리치 에디터가 만든 HTML (`<html>...</html>`). 글자만 필요하면 htmlToPlainText 를 쓴다. */
   content: string;
   /** 포스트잇 색. 만들 때 정해지고, 목록과 상세 화면에서 같은 색으로 보인다. */
@@ -17,8 +19,8 @@ export type Memo = {
 
 type MemoStore = {
   memos: Memo[];
-  addMemo: (content: string, color?: NoteColor) => void;
-  updateMemo: (id: string, content: string) => void;
+  addMemo: (title: string, content: string, color?: NoteColor) => void;
+  updateMemo: (id: string, title: string, content: string) => void;
   deleteMemo: (id: string) => void;
 };
 
@@ -50,10 +52,11 @@ export const useMemoStore = create<MemoStore>()(
   persist(
     (set) => ({
       memos: [],
-      addMemo: (content, color = randomNoteColor()) => {
+      addMemo: (title, content, color = randomNoteColor()) => {
         const now = Date.now();
         const memo: Memo = {
           id: `${now}-${Math.random().toString(36).slice(2, 8)}`,
+          title,
           content,
           color,
           createdAt: now,
@@ -61,10 +64,10 @@ export const useMemoStore = create<MemoStore>()(
         };
         set((state) => ({ memos: [memo, ...state.memos] }));
       },
-      updateMemo: (id, content) =>
+      updateMemo: (id, title, content) =>
         set((state) => ({
           memos: state.memos.map((memo) =>
-            memo.id === id ? { ...memo, content, updatedAt: Date.now() } : memo,
+            memo.id === id ? { ...memo, title, content, updatedAt: Date.now() } : memo,
           ),
         })),
       deleteMemo: (id) => set((state) => ({ memos: state.memos.filter((memo) => memo.id !== id) })),
@@ -78,7 +81,8 @@ export const useMemoStore = create<MemoStore>()(
       // - 0: 색 없음
       // - 1: 메모마다 color 저장
       // - 2: content 를 일반 텍스트 대신 리치 에디터 HTML 로 저장
-      version: 2,
+      // - 3: 메모마다 title 저장
+      version: 3,
       migrate: (persisted, version) => {
         const state = persisted as { memos?: Partial<Memo>[] };
         let memos = state.memos ?? [];
@@ -92,6 +96,9 @@ export const useMemoStore = create<MemoStore>()(
             const content = memo.content ?? '';
             return { ...memo, content: isRichHtml(content) ? content : plainTextToHtml(content) };
           });
+        }
+        if (version < 3) {
+          memos = memos.map((memo) => ({ ...memo, title: memo.title ?? '' }));
         }
         return { memos: memos as Memo[] };
       },

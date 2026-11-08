@@ -4,7 +4,7 @@ import { EnrichedText } from 'react-native-enriched-html';
 import type { Memo } from '@/lib/memo-store';
 import { NOTE_BG_CLASS } from '@/lib/note-colors';
 
-/** 모든 메모 공통으로 보여줄 최대 줄 수. 넘치면 … 으로 잘린다. */
+/** 제목이 없을 때 보여줄 본문 최대 줄 수. 넘치면 … 으로 잘린다. */
 export const PREVIEW_LINES = 5;
 
 type Props = {
@@ -24,10 +24,19 @@ export function StickyNote({ memo, size, onPress }: Props) {
       style={{ width: size, height: size }}>
       {/* 테이프 */}
       <View className="absolute -top-2 h-4 w-14 self-center border border-black/10 bg-white/50" />
+      {memo.title !== '' && (
+        <Text
+          className="mb-1 text-[15px] font-bold leading-[21px] text-neutral-800"
+          numberOfLines={1}
+          ellipsizeMode="tail">
+          {memo.title}
+        </Text>
+      )}
       {/* 터치는 포스트잇(Pressable)이 받도록 미리보기는 터치를 통과시킨다. */}
-      <View className="flex-1" pointerEvents="none">
+      <View className="flex-1 overflow-hidden" pointerEvents="none">
         <EnrichedText
-          numberOfLines={PREVIEW_LINES}
+          // 포스트잇 크기는 고정이라, 제목이 있으면 그 한 줄만큼 본문을 줄인다.
+          numberOfLines={memo.title !== '' ? PREVIEW_LINES - 1 : PREVIEW_LINES}
           ellipsizeMode="tail"
           style={{ fontSize: 15, lineHeight: 21, color: '#262626' }}>
           {memo.content}
