@@ -3,9 +3,11 @@ import { create } from 'zustand';
 import { createJSONStorage, persist, type StateStorage } from 'zustand/middleware';
 
 import { type NoteColor, randomNoteColor, toNoteColor } from '@/lib/note-colors';
+import { isRichHtml, plainTextToHtml } from '@/lib/rich-text';
 
 export type Memo = {
   id: string;
+  /** 리치 에디터가 만든 HTML (`<html>...</html>`). 글자만 필요하면 htmlToPlainText 를 쓴다. */
   content: string;
   /** 포스트잇 색. 만들 때 정해지고, 목록과 상세 화면에서 같은 색으로 보인다. */
   color: NoteColor;
@@ -75,13 +77,21 @@ export const useMemoStore = create<MemoStore>()(
       // 저장 형식 버전. 형식이 바뀔 때마다 올리고, migrate 에서 예전 데이터를 새 형식으로 바꾼다.
       // - 0: 색 없음
       // - 1: 메모마다 color 저장
-      version: 1,
+      // - 2: content 를 일반 텍스트 대신 리치 에디터 HTML 로 저장
+      version: 2,
       migrate: (persisted, version) => {
         const state = persisted as { memos?: Partial<Memo>[] };
         let memos = state.memos ?? [];
         if (version < 1) {
           // 색이 없던 예전 메모에 랜덤 색을 한 번 정해서 저장한다.
           memos = memos.map((memo) => ({ ...memo, color: toNoteColor(memo.color) }));
+        }
+        if (version < 2) {
+          // 일반 텍스트 본문을 줄마다 <p> 로 감싼 HTML 로 바꾼다.
+          memos = memos.map((memo) => {
+            const content = memo.content ?? '';
+            return { ...memo, content: isRichHtml(content) ? content : plainTextToHtml(content) };
+          });
         }
         return { memos: memos as Memo[] };
       },

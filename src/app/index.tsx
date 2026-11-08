@@ -17,8 +17,8 @@ export default function MemoListScreen() {
   if (memos.length === 0) {
     return (
       <View className="flex-1 items-center justify-center gap-4 bg-white dark:bg-black">
-        <AddButton size={72} onPress={() => openMemo('new')} />
-        <Text className="text-base font-medium text-neutral-500 dark:text-neutral-400">
+        <AddButton size={64} onPress={() => openMemo('new')} />
+        <Text className="w-full text-center text-base font-medium text-neutral-500 dark:text-neutral-400">
           첫 메모를 추가해보세요
         </Text>
       </View>
