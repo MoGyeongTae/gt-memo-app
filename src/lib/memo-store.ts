@@ -17,8 +17,15 @@ export type Memo = {
   updatedAt: number;
 };
 
+/** 위젯에 함께 보여줄 수 있는 메모 수 */
+export const MAX_WIDGET_MEMOS = 2;
+
 type MemoStore = {
   memos: Memo[];
+  /** 위젯에 보여줄 메모 id. 고른 순서대로 들어 있다. */
+  widgetMemoIds: string[];
+  /** 위젯 표시를 켜고 끈다. 자리가 꽉 찼으면 가장 먼저 고른 메모가 빠진다. */
+  toggleWidgetMemo: (id: string) => void;
   addMemo: (title: string, content: string, color?: NoteColor) => void;
   updateMemo: (id: string, title: string, content: string, color: NoteColor) => void;
   deleteMemo: (id: string) => void;
@@ -52,6 +59,13 @@ export const useMemoStore = create<MemoStore>()(
   persist(
     (set) => ({
       memos: [],
+      widgetMemoIds: [],
+      toggleWidgetMemo: (id) =>
+        set((state) => ({
+          widgetMemoIds: state.widgetMemoIds.includes(id)
+            ? state.widgetMemoIds.filter((item) => item !== id)
+            : [...state.widgetMemoIds, id].slice(-MAX_WIDGET_MEMOS),
+        })),
       addMemo: (title, content, color = randomNoteColor()) => {
         const now = Date.now();
         const memo: Memo = {
@@ -70,21 +84,26 @@ export const useMemoStore = create<MemoStore>()(
             memo.id === id ? { ...memo, title, content, color, updatedAt: Date.now() } : memo,
           ),
         })),
-      deleteMemo: (id) => set((state) => ({ memos: state.memos.filter((memo) => memo.id !== id) })),
+      deleteMemo: (id) =>
+        set((state) => ({
+          memos: state.memos.filter((memo) => memo.id !== id),
+          widgetMemoIds: state.widgetMemoIds.filter((item) => item !== id),
+        })),
     }),
     {
       name: 'memo-store',
       storage: createJSONStorage(() => memoStorage),
-      // 함수(액션)는 저장하지 않고 메모 목록만 저장한다.
-      partialize: (state) => ({ memos: state.memos }),
+      // 함수(액션)는 저장하지 않고 데이터만 저장한다.
+      partialize: (state) => ({ memos: state.memos, widgetMemoIds: state.widgetMemoIds }),
       // 저장 형식 버전. 형식이 바뀔 때마다 올리고, migrate 에서 예전 데이터를 새 형식으로 바꾼다.
       // - 0: 색 없음
       // - 1: 메모마다 color 저장
       // - 2: content 를 일반 텍스트 대신 리치 에디터 HTML 로 저장
       // - 3: 메모마다 title 저장
-      version: 3,
+      // - 4: 위젯에 보여줄 메모 id(widgetMemoIds) 저장
+      version: 4,
       migrate: (persisted, version) => {
-        const state = persisted as { memos?: Partial<Memo>[] };
+        const state = persisted as { memos?: Partial<Memo>[]; widgetMemoIds?: string[] };
         let memos = state.memos ?? [];
         if (version < 1) {
           // 색이 없던 예전 메모에 랜덤 색을 한 번 정해서 저장한다.
@@ -100,7 +119,7 @@ export const useMemoStore = create<MemoStore>()(
         if (version < 3) {
           memos = memos.map((memo) => ({ ...memo, title: memo.title ?? '' }));
         }
-        return { memos: memos as Memo[] };
+        return { memos: memos as Memo[], widgetMemoIds: state.widgetMemoIds ?? [] };
       },
     },
   ),

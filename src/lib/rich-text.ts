@@ -8,10 +8,17 @@ const ENTITIES: Record<string, string> = {
   '&lt;': '<',
   '&gt;': '>',
   '&quot;': '"',
-  '&#39;': "'",
   '&apos;': "'",
   '&nbsp;': ' ',
 };
+
+/** 에디터는 한글을 `&#50696;` 같은 숫자 표기로 저장하므로 이름 표기와 함께 글자로 되돌린다. */
+function decodeEntity(entity: string) {
+  if (entity[1] !== '#') return ENTITIES[entity];
+  const isHex = entity[2] === 'x' || entity[2] === 'X';
+  const code = isHex ? parseInt(entity.slice(3, -1), 16) : parseInt(entity.slice(2, -1), 10);
+  return code <= 0x10ffff ? String.fromCodePoint(code) : entity;
+}
 
 function escapeHtml(text: string) {
   return text
@@ -35,10 +42,12 @@ export function plainTextToHtml(text: string) {
 export function htmlToPlainText(html: string) {
   if (!isRichHtml(html)) return html;
   return html
+    // 태그 사이의 줄바꿈은 HTML 소스 정렬용이라 본문에 넣지 않는다.
+    .replace(/>\s*\n\s*</g, '><')
     .replace(/<br\s*\/?>/gi, '\n')
     .replace(/<\/(p|h[1-6]|li|blockquote|codeblock)>/gi, '\n')
     .replace(/<[^>]+>/g, '')
-    .replace(/&(amp|lt|gt|quot|#39|apos|nbsp);/g, (entity) => ENTITIES[entity])
+    .replace(/&(?:amp|lt|gt|quot|apos|nbsp|#\d+|#[xX][0-9a-fA-F]+);/g, decodeEntity)
     .replace(/\n{3,}/g, '\n\n')
     .trim();
 }
