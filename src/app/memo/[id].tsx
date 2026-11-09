@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import { EnrichedTextInput, type EnrichedTextInputInstance } from 'react-native-enriched-html';
 
+import { NoteColorButton, NoteColorMenu } from '@/components/note-color-menu';
 import {
   BASE_FONT_SIZE,
   BASE_LINE_HEIGHT,
@@ -41,16 +42,17 @@ export default function MemoEditorScreen() {
   const titleRef = useRef(existing?.title ?? '');
   const [customStyle, setCustomStyle] = useState<CustomStyleState>();
   const [focused, setFocused] = useState(isNew);
-  // 화면을 연 순간의 색으로 고정한다. 기존 메모는 저장된 색, 새 메모는 랜덤 색이고,
-  // 새 메모는 저장할 때 이 색을 그대로 넘겨서 목록에서도 같은 색으로 보이게 한다.
-  const [color] = useState(() => existing?.color ?? randomNoteColor());
+  // 기존 메모는 저장된 색, 새 메모는 랜덤 색으로 시작한다.
+  // 고르면 화면에 바로 보이고, 저장을 눌러야 메모에 반영된다.
+  const [color, setColor] = useState(() => existing?.color ?? randomNoteColor());
+  const [colorMenuOpen, setColorMenuOpen] = useState(false);
 
   const save = async () => {
     const title = titleRef.current.trim();
     const html = (await editorRef.current?.getHTML()) ?? '';
     // 제목과 본문 글자가 모두 없으면 저장하지 않는다 (서식만 남은 빈 줄 포함).
     if (title || htmlToPlainText(html)) {
-      if (existing) updateMemo(existing.id, title, html);
+      if (existing) updateMemo(existing.id, title, html, color);
       else addMemo(title, html, color);
     }
     router.back();
@@ -92,11 +94,12 @@ export default function MemoEditorScreen() {
               onSubmitEditing={() => editorRef.current?.focus()}
               className="p-0 text-[18px] font-bold text-neutral-800"
               // Android 는 헤더가 남는 폭을 채워주지만, iOS 는 폭을 직접 정해야 한다.
-              style={{ width: Platform.OS === 'ios' ? windowWidth - 180 : '100%' }}
+              style={{ width: Platform.OS === 'ios' ? windowWidth - 225 : '100%' }}
             />
           ),
           headerRight: () => (
-            <View className="flex-row gap-4">
+            <View className="flex-row items-center gap-4">
+              <NoteColorButton color={color} onPress={() => setColorMenuOpen((open) => !open)} />
               {existing && (
                 <Pressable onPress={remove} hitSlop={8}>
                   <Text className="text-[17px] font-semibold text-red-700">삭제</Text>
@@ -139,6 +142,13 @@ export default function MemoEditorScreen() {
         />
         {focused && <RichTextToolbar editorRef={editorRef} current={customStyle} />}
       </KeyboardAvoidingView>
+      {colorMenuOpen && (
+        <NoteColorMenu
+          selected={color}
+          onSelect={setColor}
+          onClose={() => setColorMenuOpen(false)}
+        />
+      )}
     </View>
   );
 }

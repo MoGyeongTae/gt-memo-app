@@ -11,7 +11,7 @@ export type Memo = {
   title: string;
   /** 리치 에디터가 만든 HTML (`<html>...</html>`). 글자만 필요하면 htmlToPlainText 를 쓴다. */
   content: string;
-  /** 포스트잇 색. 만들 때 정해지고, 목록과 상세 화면에서 같은 색으로 보인다. */
+  /** 포스트잇 색. 편집 화면에서 바꿀 수 있고, 목록과 상세 화면에서 같은 색으로 보인다. */
   color: NoteColor;
   createdAt: number;
   updatedAt: number;
@@ -20,7 +20,7 @@ export type Memo = {
 type MemoStore = {
   memos: Memo[];
   addMemo: (title: string, content: string, color?: NoteColor) => void;
-  updateMemo: (id: string, title: string, content: string) => void;
+  updateMemo: (id: string, title: string, content: string, color: NoteColor) => void;
   deleteMemo: (id: string) => void;
 };
 
@@ -64,10 +64,10 @@ export const useMemoStore = create<MemoStore>()(
         };
         set((state) => ({ memos: [memo, ...state.memos] }));
       },
-      updateMemo: (id, title, content) =>
+      updateMemo: (id, title, content, color) =>
         set((state) => ({
           memos: state.memos.map((memo) =>
-            memo.id === id ? { ...memo, title, content, updatedAt: Date.now() } : memo,
+            memo.id === id ? { ...memo, title, content, color, updatedAt: Date.now() } : memo,
           ),
         })),
       deleteMemo: (id) => set((state) => ({ memos: state.memos.filter((memo) => memo.id !== id) })),
