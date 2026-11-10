@@ -36,7 +36,27 @@
           "imageWidth": 76
         }
       ],
-      "expo-sqlite"
+      "expo-sqlite",
+      [
+        "expo-widgets",
+        {
+          "enableAndroid": true,
+          "widgets": [
+            {
+              "name": "MemoWidget",
+              "displayName": "메모",
+              "description": "앱에서 고른 메모를 포스트잇으로 보여줘요.",
+              "android": {
+                "targetCellWidth": 4,
+                "targetCellHeight": 2,
+                "minWidth": 250,
+                "minHeight": 110,
+                "resizeMode": "both"
+              }
+            }
+          ]
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

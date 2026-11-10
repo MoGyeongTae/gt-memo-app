@@ -1,8 +1,8 @@
 import { router } from 'expo-router';
-import { useWindowDimensions, View } from 'react-native';
+import { Alert, Platform, useWindowDimensions, View } from 'react-native';
 
 import { StickyNote } from '@/components/sticky-note';
-import type { Memo } from '@/lib/memo-store';
+import { MAX_WIDGET_MEMOS, type Memo, useMemoStore } from '@/lib/memo-store';
 
 export const MEMO_COLUMNS = 2;
 
@@ -12,6 +12,22 @@ const NOTE_GAP = 16;
 
 export function openMemo(id: string) {
   router.push({ pathname: '/memo/[id]', params: { id } });
+}
+
+/** 포스트잇을 길게 누르면 위젯에 표시할지 묻는다. */
+function askWidgetToggle(memo: Memo) {
+  const { widgetMemoIds, toggleWidgetMemo } = useMemoStore.getState();
+  const onWidget = widgetMemoIds.includes(memo.id);
+  const full = !onWidget && widgetMemoIds.length >= MAX_WIDGET_MEMOS;
+
+  Alert.alert(
+    memo.title || '메모',
+    full ? `위젯에는 ${MAX_WIDGET_MEMOS}개까지 표시돼요. 가장 먼저 고른 메모가 빠져요.` : undefined,
+    [
+      { text: '취소', style: 'cancel' },
+      { text: onWidget ? '위젯에서 빼기' : '위젯에 표시', onPress: () => toggleWidgetMemo(memo.id) },
+    ],
+  );
 }
 
 type Props = {
@@ -31,6 +47,8 @@ export function MemoRow({ row }: Props) {
           memo={memo}
           size={size}
           onPress={() => openMemo(memo.id)}
+          // 위젯은 Android 에서만 쓴다.
+          onLongPress={Platform.OS === 'android' ? () => askWidgetToggle(memo) : undefined}
         />
       ))}
     </View>
