@@ -32,6 +32,7 @@ const MemoWidget = (props: MemoWidgetProps) => {
   'widget';
 
   // target 의 "open:" 동작은 patches/ 의 expo-widgets 패치가 처리한다. 누르면 해당 주소로 앱이 열린다.
+  // memo/new 는 메모 화면의 새 메모 모드다.
   // 위젯은 자기 폭을 알 수 없고 Row 를 균등하게 나누는 수단도 없어서 폭을 고정한다.
   const noteWidth = 156;
   const textColor = '#262626';
@@ -96,16 +97,22 @@ const MemoWidget = (props: MemoWidgetProps) => {
 
   const first =
     props.notes.length === 0
-      ? renderPostIt(
-          'open:gtmemoapp://',
+      ? // 고른 메모가 없으면 누를 때 바로 새 메모 작성 화면(memo/new)을 연다.
+        renderPostIt(
+          'open:gtmemoapp://memo/new',
           [width(noteWidth), fillMaxHeight()],
-          <Box
-            contentAlignment="center"
+          <Column
+            verticalArrangement="center"
+            horizontalAlignment="center"
             modifiers={[fillMaxSize(), background('#FFF59D'), paddingAll(12)]}>
-            <Text color={textColor} style={{ fontSize: 14 }}>
-              앱에서 포스트잇을 길게 눌러 메모를 골라주세요
+            <Text color={textColor} style={{ fontSize: 15, fontWeight: 'bold' }}>
+              + 새 메모
             </Text>
-          </Box>,
+            {/* 여러 줄로 감싸지므로 줄마다 가운데 맞춘다. */}
+            <Text color="#00000080" style={{ fontSize: 11, textAlign: 'center' }}>
+              앱에서 포스트잇을 길게 누르면 여기에 띄울 수 있어요
+            </Text>
+          </Column>,
           '',
         )
       : renderNote(props.notes[0]);
